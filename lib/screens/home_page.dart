@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'add_expense_page.dart';
 import 'expense_list_page.dart';
+import 'insights_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -24,12 +25,7 @@ class _HomePageState extends State<HomePage> {
           },
         ),
         ExpenseListPage(expenses: expenses),
-        const Center(
-          child: Text(
-            "📊 Insights",
-            style: TextStyle(fontSize: 24),
-          ),
-        ),
+        InsightsPage(expenses: expenses),
       ];
 
   @override
