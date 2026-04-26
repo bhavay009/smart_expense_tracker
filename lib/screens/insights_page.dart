@@ -1,135 +1,118 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class InsightsPage extends StatelessWidget {
-  final List<Map<String, String>> expenses;
-
-  const InsightsPage({
-    super.key,
-    required this.expenses,
-  });
+  const InsightsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    if (expenses.isEmpty) {
-      return const Center(
-        child: Text(
-          "No insights yet",
-          style: TextStyle(fontSize: 24),
-        ),
-      );
-    }
-
-    int weekTotal = 0;
-    int monthTotal = 0;
-
-    Map<String, int> categoryTotals = {};
-
-    DateTime now = DateTime.now();
-
-    for (var item in expenses) {
-      int amount = int.tryParse(item["amount"] ?? "0") ?? 0;
-      String category = item["category"] ?? "Other";
-      String dateText = item["date"] ?? "";
-
-      List<String> parts = dateText.split("/");
-
-      if (parts.length == 3) {
-        int day = int.parse(parts[0]);
-        int month = int.parse(parts[1]);
-        int year = int.parse(parts[2]);
-
-        DateTime expenseDate = DateTime(year, month, day);
-
-        // Monthly total
-        if (expenseDate.month == now.month &&
-            expenseDate.year == now.year) {
-          monthTotal += amount;
+    return StreamBuilder(
+      stream: FirebaseFirestore.instance.collection("expenses").snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
         }
 
-        // Weekly total (last 7 days)
-        if (now.difference(expenseDate).inDays <= 7 &&
-            now.difference(expenseDate).inDays >= 0) {
-          weekTotal += amount;
+        final docs = snapshot.data!.docs;
+
+        if (docs.isEmpty) {
+          return const Center(
+            child: Text(
+              "No insights yet",
+              style: TextStyle(fontSize: 22),
+            ),
+          );
         }
-      }
 
-      categoryTotals[category] =
-          (categoryTotals[category] ?? 0) + amount;
-    }
+        double total = 0;
+        Map<String, double> categoryTotals = {};
 
-    String topCategory = "None";
-    int maxAmount = 0;
+        for (var doc in docs) {
+          double amount = (doc["amount"] as num).toDouble();
+          String category = doc["category"];
 
-    categoryTotals.forEach((key, value) {
-      if (value > maxAmount) {
-        maxAmount = value;
-        topCategory = key;
-      }
-    });
+          total += amount;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.calendar_view_week),
-              title: const Text("This Week"),
-              subtitle: Text("₹$weekTotal"),
-            ),
-          ),
+          categoryTotals[category] =
+              (categoryTotals[category] ?? 0) + amount;
+        }
 
-          const SizedBox(height: 12),
+        String topCategory = "";
+        double maxSpend = 0;
 
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.calendar_month),
-              title: const Text("This Month"),
-              subtitle: Text("₹$monthTotal"),
-            ),
-          ),
+        categoryTotals.forEach((key, value) {
+          if (value > maxSpend) {
+            maxSpend = value;
+            topCategory = key;
+          }
+        });
 
-          const SizedBox(height: 20),
-
-          const Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              "Category Breakdown",
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.currency_rupee),
+                  title: const Text("Total Spending"),
+                  subtitle: Text("₹${total.toStringAsFixed(0)}"),
+                ),
               ),
-            ),
-          ),
 
-          const SizedBox(height: 10),
+              const SizedBox(height: 12),
 
-          ...categoryTotals.entries.map(
-            (entry) => Card(
-              child: ListTile(
-                leading: const Icon(Icons.category),
-                title: Text(entry.key),
-                trailing: Text("₹${entry.value}"),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.category),
+                  title: const Text("Top Category"),
+                  subtitle: Text(topCategory),
+                ),
               ),
-            ),
-          ),
 
-          const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.indigo.shade50,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              "You spent the most on $topCategory this month.",
-              style: const TextStyle(fontSize: 18),
-            ),
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "Category Breakdown",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              ...categoryTotals.entries.map(
+                (entry) => Card(
+                  child: ListTile(
+                    title: Text(entry.key),
+                    trailing: Text(
+                      "₹${entry.value.toStringAsFixed(0)}",
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.indigo.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  "You spent the most on $topCategory.",
+                  style: const TextStyle(fontSize: 18),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

@@ -25,7 +25,7 @@ class _HomePageState extends State<HomePage> {
   late final pages = [
     AddExpensePage(onExpenseAdded: _addExpense),
     ExpenseListPage(expenses: _expenses),
-    InsightsPage(expenses: _expenses),
+    const InsightsPage(),
   ];
 
   @override
