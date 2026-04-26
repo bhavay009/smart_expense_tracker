@@ -24,7 +24,7 @@ class _HomePageState extends State<HomePage> {
 
   late final pages = [
     AddExpensePage(onExpenseAdded: _addExpense),
-    ExpenseListPage(expenses: _expenses),
+    const ExpenseListPage(),
     const InsightsPage(),
   ];
 
