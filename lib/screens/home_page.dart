@@ -13,20 +13,20 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int currentIndex = 0;
 
-  List<Map<String, String>> expenses = [];
+  // Store expenses in parent widget
+  final List<Map<String, String>> _expenses = [];
 
-  List<Widget> get pages => [
-        AddExpensePage(
-          onSave: (expense) {
-            setState(() {
-              expenses.add(expense);
-              currentIndex = 1;
-            });
-          },
-        ),
-        ExpenseListPage(expenses: expenses),
-        InsightsPage(expenses: expenses),
-      ];
+  void _addExpense(Map<String, String> expense) {
+    setState(() {
+      _expenses.add(expense);
+    });
+  }
+
+  late final pages = [
+    AddExpensePage(onExpenseAdded: _addExpense),
+    ExpenseListPage(expenses: _expenses),
+    InsightsPage(expenses: _expenses),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -36,23 +36,17 @@ class _HomePageState extends State<HomePage> {
         centerTitle: true,
       ),
       body: pages[currentIndex],
+
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentIndex,
-        selectedItemColor: Colors.indigo,
         onTap: (index) {
           setState(() {
             currentIndex = index;
           });
         },
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add_circle_outline),
-            label: "Add",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.list_alt),
-            label: "Expenses",
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.add), label: "Add"),
+          BottomNavigationBarItem(icon: Icon(Icons.list), label: "Expenses"),
           BottomNavigationBarItem(
             icon: Icon(Icons.bar_chart),
             label: "Insights",
