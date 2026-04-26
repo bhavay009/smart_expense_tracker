@@ -1,17 +1,45 @@
-# smart_expense_tracker
+# Smart Expense Tracker
 
-A new Flutter project.
+A Flutter mobile/web app to track expenses with Firebase backend.
 
-## Getting Started
+## Features
 
-This project is a starting point for a Flutter application.
+- Add expense with amount, category, note, and date
+- View all expenses grouped by date
+- Live Firestore data updates
+- Weekly and monthly spending insights
+- Category-wise expense breakdown
+- Smart spending comparison insights
 
-A few resources to get you started if this is your first Flutter project:
+## Tech Stack
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+- Flutter
+- Dart
+- Firebase Firestore
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## How to Run
+
+1. Clone repository
+2. Run `flutter pub get`
+3. Configure Firebase
+4. Run `flutter run`
+
+## Firebase Collection
+
+expenses
+
+Fields:
+- amount
+- category
+- note
+- date
+
+## Project Structure
+
+lib/
+- main.dart
+- screens/
+
+## Author
+
+Bhavay Goyal
