@@ -6,9 +6,16 @@ class InsightsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder(
-      stream: FirebaseFirestore.instance.collection("expenses").snapshots(),
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection("expenses")
+          .orderBy("date", descending: true)
+          .snapshots(),
       builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Center(child: Text("Something went wrong"));
+        }
+
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -24,28 +31,63 @@ class InsightsPage extends StatelessWidget {
           );
         }
 
-        double total = 0;
+        final now = DateTime.now();
+
+        double weekTotal = 0;
+        double monthTotal = 0;
+        double lastWeekTotal = 0;
+
         Map<String, double> categoryTotals = {};
 
         for (var doc in docs) {
-          double amount = (doc["amount"] as num).toDouble();
-          String category = doc["category"];
+          final data = doc.data() as Map<String, dynamic>;
 
-          total += amount;
+          double amount = (data["amount"] as num).toDouble();
+          String category = data["category"] ?? "Other";
+
+          DateTime expenseDate = (data["date"] as Timestamp).toDate();
+
+          int diffDays = now.difference(expenseDate).inDays;
+
+          // This week
+          if (diffDays >= 0 && diffDays <= 7) {
+            weekTotal += amount;
+          }
+
+          // Last week
+          if (diffDays > 7 && diffDays <= 14) {
+            lastWeekTotal += amount;
+          }
+
+          // This month
+          if (expenseDate.month == now.month &&
+              expenseDate.year == now.year) {
+            monthTotal += amount;
+          }
 
           categoryTotals[category] =
               (categoryTotals[category] ?? 0) + amount;
         }
 
         String topCategory = "";
-        double maxSpend = 0;
+        double topValue = 0;
 
         categoryTotals.forEach((key, value) {
-          if (value > maxSpend) {
-            maxSpend = value;
+          if (value > topValue) {
+            topValue = value;
             topCategory = key;
           }
         });
+
+        String smartInsight = "You spent the most on $topCategory.";
+
+        if (lastWeekTotal > 0 && weekTotal > lastWeekTotal) {
+          double increase =
+              ((weekTotal - lastWeekTotal) / lastWeekTotal) * 100;
+
+          smartInsight =
+              "You spent ${increase.toStringAsFixed(0)}% more this week than last week.";
+        }
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -53,19 +95,19 @@ class InsightsPage extends StatelessWidget {
             children: [
               Card(
                 child: ListTile(
-                  leading: const Icon(Icons.currency_rupee),
-                  title: const Text("Total Spending"),
-                  subtitle: Text("₹${total.toStringAsFixed(0)}"),
+                  leading: const Icon(Icons.calendar_view_week),
+                  title: const Text("This Week"),
+                  trailing: Text("₹${weekTotal.toStringAsFixed(0)}"),
                 ),
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
 
               Card(
                 child: ListTile(
-                  leading: const Icon(Icons.category),
-                  title: const Text("Top Category"),
-                  subtitle: Text(topCategory),
+                  leading: const Icon(Icons.calendar_month),
+                  title: const Text("This Month"),
+                  trailing: Text("₹${monthTotal.toStringAsFixed(0)}"),
                 ),
               ),
 
@@ -105,7 +147,7 @@ class InsightsPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  "You spent the most on $topCategory.",
+                  smartInsight,
                   style: const TextStyle(fontSize: 18),
                 ),
               ),
