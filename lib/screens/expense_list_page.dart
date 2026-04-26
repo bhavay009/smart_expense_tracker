@@ -31,8 +31,9 @@ class ExpenseListPage extends StatelessWidget {
             leading: const Icon(Icons.currency_rupee),
             title: Text("₹${item["amount"]}"),
             subtitle: Text(
-              "${item["category"]} • ${item["note"]}",
+              "${item["category"]} • ${item["note"]}\n${item["date"]}",
             ),
+            isThreeLine: true,
           ),
         );
       },

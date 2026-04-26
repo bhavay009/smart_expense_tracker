@@ -17,6 +17,7 @@ class _AddExpensePageState extends State<AddExpensePage> {
   final noteController = TextEditingController();
 
   String selectedCategory = "Food";
+  DateTime selectedDate = DateTime.now();
 
   final categories = [
     "Food",
@@ -25,6 +26,21 @@ class _AddExpensePageState extends State<AddExpensePage> {
     "Bills",
     "Other",
   ];
+
+  Future<void> pickDate() async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate,
+      firstDate: DateTime(2023),
+      lastDate: DateTime(2030),
+    );
+
+    if (picked != null) {
+      setState(() {
+        selectedDate = picked;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +57,7 @@ class _AddExpensePageState extends State<AddExpensePage> {
                 border: OutlineInputBorder(),
               ),
             ),
+
             const SizedBox(height: 15),
 
             DropdownButtonFormField(
@@ -72,6 +89,20 @@ class _AddExpensePageState extends State<AddExpensePage> {
               ),
             ),
 
+            const SizedBox(height: 15),
+
+            ListTile(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+                side: const BorderSide(color: Colors.grey),
+              ),
+              title: Text(
+                "${selectedDate.day}/${selectedDate.month}/${selectedDate.year}",
+              ),
+              trailing: const Icon(Icons.calendar_today),
+              onTap: pickDate,
+            ),
+
             const SizedBox(height: 20),
 
             SizedBox(
@@ -82,10 +113,17 @@ class _AddExpensePageState extends State<AddExpensePage> {
                     "amount": amountController.text,
                     "category": selectedCategory,
                     "note": noteController.text,
+                    "date":
+                        "${selectedDate.day}/${selectedDate.month}/${selectedDate.year}",
                   });
 
                   amountController.clear();
                   noteController.clear();
+
+                  setState(() {
+                    selectedCategory = "Food";
+                    selectedDate = DateTime.now();
+                  });
                 },
                 child: const Text("Save Expense"),
               ),
