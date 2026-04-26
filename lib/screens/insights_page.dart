@@ -10,14 +10,48 @@ class InsightsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    int total = 0;
+    if (expenses.isEmpty) {
+      return const Center(
+        child: Text(
+          "No insights yet",
+          style: TextStyle(fontSize: 24),
+        ),
+      );
+    }
+
+    int weekTotal = 0;
+    int monthTotal = 0;
+
     Map<String, int> categoryTotals = {};
+
+    DateTime now = DateTime.now();
 
     for (var item in expenses) {
       int amount = int.tryParse(item["amount"] ?? "0") ?? 0;
       String category = item["category"] ?? "Other";
+      String dateText = item["date"] ?? "";
 
-      total += amount;
+      List<String> parts = dateText.split("/");
+
+      if (parts.length == 3) {
+        int day = int.parse(parts[0]);
+        int month = int.parse(parts[1]);
+        int year = int.parse(parts[2]);
+
+        DateTime expenseDate = DateTime(year, month, day);
+
+        // Monthly total
+        if (expenseDate.month == now.month &&
+            expenseDate.year == now.year) {
+          monthTotal += amount;
+        }
+
+        // Weekly total (last 7 days)
+        if (now.difference(expenseDate).inDays <= 7 &&
+            now.difference(expenseDate).inDays >= 0) {
+          weekTotal += amount;
+        }
+      }
 
       categoryTotals[category] =
           (categoryTotals[category] ?? 0) + amount;
@@ -33,25 +67,15 @@ class InsightsPage extends StatelessWidget {
       }
     });
 
-    if (expenses.isEmpty) {
-      return const Center(
-        child: Text(
-          "No insights yet",
-          style: TextStyle(fontSize: 24),
-        ),
-      );
-    }
-
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Card(
             child: ListTile(
-              leading: const Icon(Icons.currency_rupee),
-              title: const Text("Total Spending"),
-              subtitle: Text("₹$total"),
+              leading: const Icon(Icons.calendar_view_week),
+              title: const Text("This Week"),
+              subtitle: Text("₹$weekTotal"),
             ),
           ),
 
@@ -59,33 +83,38 @@ class InsightsPage extends StatelessWidget {
 
           Card(
             child: ListTile(
-              leading: const Icon(Icons.receipt_long),
-              title: const Text("Transactions"),
-              subtitle: Text("${expenses.length} expenses added"),
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.category),
-              title: const Text("Top Category"),
-              subtitle: Text(topCategory),
+              leading: const Icon(Icons.calendar_month),
+              title: const Text("This Month"),
+              subtitle: Text("₹$monthTotal"),
             ),
           ),
 
           const SizedBox(height: 20),
 
-          const Text(
-            "Smart Insight",
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
+          const Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              "Category Breakdown",
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
 
           const SizedBox(height: 10),
+
+          ...categoryTotals.entries.map(
+            (entry) => Card(
+              child: ListTile(
+                leading: const Icon(Icons.category),
+                title: Text(entry.key),
+                trailing: Text("₹${entry.value}"),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 20),
 
           Container(
             width: double.infinity,
@@ -95,7 +124,7 @@ class InsightsPage extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              "You spent the most on $topCategory.",
+              "You spent the most on $topCategory this month.",
               style: const TextStyle(fontSize: 18),
             ),
           ),
