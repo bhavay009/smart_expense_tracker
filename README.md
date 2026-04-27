@@ -40,6 +40,18 @@ lib/
 - main.dart
 - screens/
 
+## Deliverables Info
+
+### Approach and Architecture
+The app follows a simple Flutter architecture. It uses `StreamBuilder` connected to Firestore to supply real-time updates for the Expense List and Insights screens. The UI is separated into individual page widgets under the `screens` directory. State management relies on basic `StatefulWidget` for the input form and `StreamBuilder` for fetching the latest data automatically when the backend changes.
+
+### Backend Choice
+The app uses **Firebase Firestore** as its backend. Firebase was chosen because it allows for rapid setup and provides out-of-the-box real-time subscriptions, removing the need to manually fetch updates or set up WebSockets. It also acts as a NoSQL database seamlessly storing expense documents with varied fields.
+
+### Assumptions or Trade-offs
+- Authentication is assumed to be out-of-scope for this basic prototype, so there are no user specific filters; all users see all expenses globally.
+- The "Insights" screen computes weekly/monthly spending client-side rather than delegating complex data-aggregation to the backend, which is a trade-off made for simplicity given the small expected data size.
+
 ## Author
 
 Bhavay Goyal

@@ -15,6 +15,7 @@ class _AddExpensePageState extends State<AddExpensePage> {
   final noteController = TextEditingController();
 
   String category = "Food";
+  DateTime selectedDate = DateTime.now();
 
   Future<void> saveExpense() async {
     if (amountController.text.isEmpty) return;
@@ -23,7 +24,7 @@ class _AddExpensePageState extends State<AddExpensePage> {
       "amount": double.parse(amountController.text),
       "category": category,
       "note": noteController.text,
-      "date": DateTime.now(),
+      "date": selectedDate,
     });
 
     // Call the callback if provided
@@ -32,7 +33,7 @@ class _AddExpensePageState extends State<AddExpensePage> {
         "amount": amountController.text,
         "category": category,
         "note": noteController.text,
-        "date": DateTime.now().toIso8601String(),
+        "date": selectedDate.toIso8601String(),
       });
     }
 
@@ -86,6 +87,34 @@ class _AddExpensePageState extends State<AddExpensePage> {
               labelText: "Note",
               border: OutlineInputBorder(),
             ),
+          ),
+
+          const SizedBox(height: 15),
+
+          Row(
+            children: [
+              Text(
+                "Date: ${selectedDate.day}/${selectedDate.month}/${selectedDate.year}",
+                style: const TextStyle(fontSize: 16),
+              ),
+              const Spacer(),
+              TextButton(
+                onPressed: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: selectedDate,
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime(2030),
+                  );
+                  if (picked != null) {
+                    setState(() {
+                      selectedDate = picked;
+                    });
+                  }
+                },
+                child: const Text("Choose Date"),
+              ),
+            ],
           ),
 
           const SizedBox(height: 20),
